@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>爱斯宾浩 · Ebbinghaus 语言学习</title>
+<style>
+  :root{
+    --bg:#0f1117; --bg2:#171a23; --card:#1d212c; --line:#2a2f3d;
+    --text:#e7eaf0; --muted:#9aa3b2; --accent:#6c8cff; --good:#34d399;
+    --warn:#f59e0b; --bad:#f87171;
+  }
+  html[data-theme="light"]{
+    --bg:#f4f6fb; --bg2:#ffffff; --card:#ffffff; --line:#e3e8f0;
+    --text:#1a2233; --muted:#5b6577; --accent:#3b5bdb; --good:#0ca678;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased}
+  header{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid var(--line);background:var(--bg2);flex-wrap:wrap}
+  .logo{font-size:20px;font-weight:700;letter-spacing:.5px}
+  .logo b{color:var(--accent)}
+  .sub{color:var(--muted);font-size:13px}
+  .spacer{flex:1}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:10px;padding:9px 14px;font-size:14px;font-weight:600;transition:.15s}
+  .btn{background:var(--accent);color:#fff}
+  .btn:hover{filter:brightness(1.08)}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+  .btn.ghost:hover{background:var(--card)}
+  .btn.sm{padding:6px 10px;font-size:13px;border-radius:8px}
+  nav{display:flex;gap:4px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--bg2);overflow-x:auto;align-items:center}
+  nav button{background:transparent;color:var(--muted);padding:8px 16px;border-radius:9px;white-space:nowrap}
+  nav button.active{background:var(--card);color:var(--text)}
+  main{padding:22px;max-width:980px;margin:0 auto}
+  .panel{display:none}
+  .panel.active{display:block;animation:fade .2s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px}
+  .grid{display:grid;gap:14px}
+  .cols2{grid-template-columns:1fr 1fr}
+  @media(max-width:720px){.cols2{grid-template-columns:1fr}}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  input,select,textarea{width:100%;background:var(--bg);color:var(--text);border:1px solid var(--line);
+    border-radius:10px;padding:11px 13px;font-size:15px;font-family:inherit}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .tts{background:transparent;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:13px}
+  .tts:hover{background:var(--bg2)}
+  .pill{font-size:12px;padding:3px 10px;border-radius:999px;font-weight:600;white-space:nowrap}
+  .pill.due{background:rgba(248,113,113,.15);color:var(--bad)}
+  .pill.ok{background:rgba(52,211,153,.15);color:var(--good)}
+  .pill.new{background:rgba(108,140,255,.15);color:var(--accent)}
+  .study-term{font-size:46px;font-weight:800;text-align:center;margin:8px 0;word-break:break-word}
+  .study-meta{text-align:center;color:var(--muted);margin-bottom:18px}
+  .trans-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+  @media(max-width:720px){.trans-grid{grid-template-columns:repeat(2,1fr)}}
+  .trans-cell{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .trans-cell .k{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .trans-cell .v{font-size:17px;font-weight:600;word-break:break-word}
+  .trans-cell input.v{font-size:15px;font-weight:600}
+  .grade-btns{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .grade-btns button{flex:1;padding:14px;min-width:110px}
+  .g-bad{background:rgba(248,113,113,.18);color:var(--bad)}
+  .g-mid{background:rgba(245,158,11,.18);color:var(--warn)}
+  .g-good{background:rgba(52,211,153,.18);color:var(--good)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--muted);font-weight:600;font-size:12px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  @media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .stat .n{font-size:30px;font-weight:800}
+  .stat .l{color:var(--muted);font-size:13px;margin-top:4px}
+  .empty{text-align:center;color:var(--muted);padding:50px 0}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--card);
+    border:1px solid var(--line);padding:11px 18px;border-radius:10px;font-size:14px;opacity:0;
+    transition:.25s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1}
+  .muted{color:var(--muted)}
+  .switch{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}
+  canvas{width:100%;max-width:640px;height:auto;display:block}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6}
+  h3{font-size:16px;margin:0 0 10px}
+  h4{font-size:14px;margin:18px 0 8px;color:var(--accent)}
+  .doc p,.doc li{font-size:14px;line-height:1.8;color:var(--text)}
+  .doc code{background:var(--bg);border:1px solid var(--line);padding:2px 6px;border-radius:5px;font-size:13px}
+  .arch{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+  .arch div{flex:1;min-width:150px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .arch .t{font-weight:700;margin-bottom:6px}
+  .arch .d{font-size:12px;color:var(--muted);line-height:1.6}
+  .ok{color:var(--good)} .bad{color:var(--bad)}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">爱<b>斯宾浩</b></div>
+    <div class="sub">Ebbinghaus 间隔重复 · 意 / 英 / 中 / 西 四语学习</div>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn ghost sm" onclick="testItalian()">🔊 测试意大利语发音</button>
+  <span class="switch"><span id="themeLabel">深色</span>
+    <button class="btn ghost sm" onclick="toggleTheme()">切换主题</button></span>
+</header>
+
+<nav>
+  <button class="active" data-tab="study" onclick="switchTab('study')">📚 学习</button>
+  <button data-tab="library" onclick="switchTab('library')">🗂 词库</button>
+  <button data-tab="translate" onclick="switchTab('translate')">🌐 翻译</button>
+  <button data-tab="stats" onclick="switchTab('stats')">📈 统计</button>
+  <button data-tab="design" onclick="switchTab('design')">📐 设计说明</button>
+  <div class="spacer" style="flex:1"></div>
+  <button class="btn sm" onclick="openAdd()">＋ 添加单词</button>
+</nav>
+
+<main>
+  <!-- ============ 学习 ============ -->
+  <section class="panel active" id="panel-study">
+    <div class="card" id="studyBox"><div class="empty">正在加载待复习卡片…</div></div>
+  </section>
+
+  <!-- ============ 词库 ============ -->
+  <section class="panel" id="panel-library">
+    <div class="card">
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <strong>全部卡片</strong>
+        <button class="btn sm" onclick="openAdd()">＋ 添加单词</button>
+      </div>
+      <div id="libList"></div>
+    </div>
+  </section>
+
+  <!-- ============ 翻译 ============ -->
+  <section class="panel" id="panel-translate">
+    <div class="card">
+      <strong>四语互译 + 发音</strong>
+      <div class="grid cols2" style="margin-top:14px">
+        <div><label>源语言</label><select id="trSrc"></select></div>
+        <div><label>目标语言</label><select id="trTgt"></select></div>
+      </div>
+      <label style="margin-top:12px">输入文本</label>
+      <textarea id="trInput" rows="2" placeholder="输入要翻译的内容…"></textarea>
+      <div class="row" style="margin-top:12px">
+        <button class="btn sm" onclick="doTranslate()">翻译</button>
+        <button class="tts" onclick="speak(document.getElementById('trInput').value, document.getElementById('trSrc').value)">🔊 朗读原文</button>
+        <button class="tts" onclick="swapLang()">⇄ 互换语言</button>
+      </div>
+      <label style="margin-top:14px">译文</label>
+      <div class="trans-cell" style="font-size:18px;min-height:54px" id="trOut">—</div>
+      <button class="tts" style="margin-top:8px" onclick="speak(document.getElementById('trOut').textContent, document.getElementById('trTgt').value)">🔊 朗读译文</button>
+      <div class="hint">翻译调用 MyMemory 公共接口（免费、无需密钥）；网络不可用时可在「添加单词」中手动填写释义，学习功能不受影响。</div>
+    </div>
+  </section>
+
+  <!-- ============ 统计 ============ -->
+  <section class="panel" id="panel-stats">
+    <div class="stats" id="statBox"></div>
+    <div class="card">
+      <strong>艾宾浩斯遗忘曲线 & 实测留存率</strong>
+      <div class="hint">曲线为理论模型 R = e<sup>−t/S</sup>（S=1.5 天）；柱形为累计复习次数分桶后的实测「记住」比例。</div>
+      <canvas id="curve" width="640" height="320"></canvas>
+    </div>
+  </section>
+
+  <!-- ============ 设计说明 ============ -->
+  <section class="panel doc" id="panel-design">
+    <div class="card">
+      <h3>一、产品定义</h3>
+      <p><b>爱斯宾浩</b>是一款面向多语种词汇记忆的间隔重复（Spaced Repetition）学习工具。核心目标：把「复习时机」交给算法，用户只需判断记不记得。在此基础上叠加两项附加能力：<b>意大利语发音</b>与<b>英 / 中 / 西 / 意 四语互译</b>。</p>
+      <p>本版本为可运行的单文件 Web 原型（无后端、数据存于 localStorage），用于验证交互与调度逻辑。</p>
+
+      <h4>功能模块</h4>
+      <div class="arch">
+        <div><div class="t">① 复习引擎</div><div class="d">艾宾浩斯间隔序列、等级升降、到期队列、复习历史</div></div>
+        <div><div class="t">② 卡片库</div><div class="d">一词多语释义、状态标签、下次复习时间、增删</div></div>
+        <div><div class="t">③ 语音层</div><div class="d">Web Speech API；按语言匹配 voice，意大利语优先保障</div></div>
+        <div><div class="t">④ 翻译层</div><div class="d">四语两两互译，带缓存；支持手动兜底</div></div>
+        <div><div class="t">⑤ 可视化</div><div class="d">理论遗忘曲线 + 实测留存率对照</div></div>
+      </div>
+
+      <h4>二、核心算法：艾宾浩斯复习调度</h4>
+      <p>采用固定间隔序列（秒）：<code>300 → 1800 → 43200 → 86400 → 172800 → 345600 → 604800 → 1296000 → 2592000 → 7776000</code>，即 5 分 / 30 分 / 12 时 / 1 天 / 2 天 / 4 天 / 7 天 / 15 天 / 30 天 / 90 天。每张卡片维护 <code>level</code>（当前间隔档位）：</p>
+      <table>
+        <thead><tr><th>用户反馈</th><th>等级变化</th><th>下次复习</th><th>留存统计</th></tr></thead>
+        <tbody>
+          <tr><td>😎 记住 (good)</td><td>level + 1（上限 L9）</td><td>序列下一档</td><td>记为「记住」</td></tr>
+          <tr><td>🤔 模糊 (mid)</td><td>level − 1（下限 L0）</td><td>退回上一档</td><td>记为「未记住」</td></tr>
+          <tr><td>😵 忘了 (bad)</td><td>归零 L0</td><td>5 分钟后</td><td>记为「未记住」</td></tr>
+        </tbody>
+      </table>
+      <p class="hint">局限：固定序列未考虑个体差异（记忆强度 S）。生产环境建议迁移到 SM-2 / FSRS，按每张卡片的难度与稳定性动态计算间隔。</p>
+
+      <h4>三、附加能力实现</h4>
+      <table>
+        <thead><tr><th>能力</th><th>方案</th><th>约束</th></tr></thead>
+        <tbody>
+          <tr><td>意大利语发音</td><td>SpeechSynthesis，<code>lang = it-IT</code>，优先选取系统 it-IT voice</td><td>依赖操作系统/浏览器内置语音包；<span id="itVoice">检测中…</span></td></tr>
+          <tr><td>四语互译</td><td>MyMemory REST，<code>langpair = src|tgt</code>，结果按 (src,tgt,text) 缓存</td><td>公共接口有速率与配额限制；需联网</td></tr>
+          <tr><td>任意语言朗读</td><td>同上，en-US / zh-CN / es-ES / it-IT 四套 voice</td><td>中文 TTS 在部分环境可能缺失</td></tr>
+          <tr><td>数据持久化</td><td>localStorage（单键 JSON）</td><td>仅本机单浏览器，无云同步</td></tr>
+        </tbody>
+      </table>
+
+      <h4>四、后续迭代优先级</h4>
+      <ol>
+        <li><b>调度升级</b>：FSRS 动态间隔 + 每日学习量上限，替代固定序列。</li>
+        <li><b>语音可靠性</b>：接入离线/云端 TTS 音频（如 Azure / Edge TTS），消除对本地语音包的依赖，并支持语速调节。</li>
+        <li><b>翻译可靠性</b>：替换为正式翻译 API 并支持批量回填，加入离线词库兜底。</li>
+        <li><b>数据层</b>：账号 + 云同步，支持多设备与导入导出（CSV / Anki）。</li>
+        <li><b>学习形态</b>：听写模式、例句、反向卡片（意→中 / 中→意）。</li>
+      </ol>
+    </div>
+  </section>
+</main>
+
+<!-- ============ 添加卡片弹窗 ============ -->
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:40;
+  align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto">
+  <div class="card" style="max-width:520px;width:100%">
+    <div class="row" style="justify-content:space-between;margin-bottom:14px">
+      <strong>添加学习卡片</strong>
+      <button class="btn ghost sm" onclick="closeAdd()">关闭</button>
+    </div>
+    <label>单词 / 短语</label>
+    <input id="addTerm" placeholder="例如：libro" />
+    <label style="margin-top:12px">该词所属语言（作为卡片正面）</label>
+    <select id="addLang"></select>
+    <div class="hint">保存时自动翻译其余三种语言；所有释义均可手动修改，离线也能用。</div>
+    <div id="addPreview" class="grid cols2" style="margin-top:14px"></div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn" onclick="saveAdd()">保存卡片</button>
+      <button class="tts" onclick="speak(document.getElementById('addTerm').value, document.getElementById('addLang').value)">🔊 试听</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==================== 常量 ==================== */
+const LANGS = {
+  it:{name:"意大利语",flag:"🇮🇹",voice:"it-IT",code:"it"},
+  en:{name:"英语",flag:"🇬🇧",voice:"en-US",code:"en"},
+  zh:{name:"中文",flag:"🇨🇳",voice:"zh-CN",code:"zh"},
+  es:{name:"西班牙语",flag:"🇪🇸",voice:"es-ES",code:"es"},
+};
+const LANG_KEYS = Object.keys(LANGS);
+// 艾宾浩斯复习间隔（秒）
+const EB_INTERVALS = [300,1800,43200,86400,172800,345600,604800,1296000,2592000,7776000];
+const LS_KEY = "ebbinghaus_app_v1";
+
+/* ==================== 状态 ==================== */
+let state = { cards:[], settings:{} };
+function load(){
+  try{ const s = localStorage.getItem(LS_KEY); if(s) state = JSON.parse(s); }catch(e){}
+  if(!state || !Array.isArray(state.cards)) state = {cards:[],settings:{}};
+}
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function toast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),1900);
+}
+function relTime(ms){
+  const d=(ms||0)-Date.now();
+  if(d<=0) return "现在";
+  const m=Math.floor(d/60000),h=Math.floor(d/3600000),day=Math.floor(d/86400000);
+  if(m<60) return m+" 分钟后";
+  if(h<24) return h+" 小时后";
+  return day+" 天后";
+}
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+/* ==================== 语音层 ==================== */
+let VOICES = [];
+function refreshVoices(){ try{ VOICES = window.speechSynthesis.getVoices()||[]; }catch(e){ VOICES=[]; } updateVoiceStatus(); }
+function pickVoice(lang){
+  const want=((LANGS[lang]&&LANGS[lang].voice)||"it-IT").toLowerCase();
+  const short=want.slice(0,2);
+  return VOICES.find(v=>v.lang.toLowerCase()===want)
+      || VOICES.find(v=>v.lang.toLowerCase().startsWith(short)) || null;
+}
+function speak(text, lang){
+  if(!text) return;
+  if(!("speechSynthesis" in window)){ toast("当前浏览器不支持语音合成"); return; }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = (LANGS[lang]&&LANGS[lang].voice)||"it-IT";
+  const v = pickVoice(lang); if(v) u.voice = v;
+  u.rate = 0.95;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(u);
+}
+function testItalian(){ speak("Ciao, come stai? Buongiorno!", "it"); toast("正在朗读意大利语：Ciao, come stai?"); }
+function updateVoiceStatus(){
+  const el=document.getElementById("itVoice"); if(!el) return;
+  const n=VOICES.filter(v=>v.lang.toLowerCase().startsWith("it")).length;
+  el.innerHTML = n>0
+    ? `<span class="ok">已检测到 ${n} 个意大利语语音，可直接发音</span>`
+    : `<span class="bad">未检测到本地意大利语语音，将回退到默认语音</span>`;
+}
+
+/* 安全发音按钮：用注册表代替内联字符串，避免引号/HTML 注入 */
+let speakSeq = 0;
+const SPEAK_REG = {};
+function speakBtn(text, lang, label){
+  const id = "sp"+(++speakSeq);
+  SPEAK_REG[id] = {text, lang};
+  return `<button class="tts" onclick="speakRef('${id}')">${label||"🔊"}</button>`;
+}
+function speakRef(id){ const o=SPEAK_REG[id]; if(o) speak(o.text,o.lang); }
+
+/* ==================== 翻译层 ==================== */
+const trCache = {};
+async function translate(text, src, tgt){
+  if(src===tgt) return text;
+  const key = src+"|"+tgt+"|"+text.toLowerCase();
+  if(trCache[key]) return trCache[key];
+  const codes = (src==="zh") ? ["zh","zh-CN"] : [src];
+  const tcodes = (tgt==="zh") ? ["zh","zh-CN"] : [tgt];
+  for(const a of codes){ for(const b of tcodes){
+    try{
+      const url="https://api.mymemory.translated.net/get?q="+encodeURIComponent(text)+"&langpair="+a+"|"+b;
+      const r=await fetch(url); const j=await r.json();
+      const out=(j&&j.responseData&&j.responseData.translatedText)||"";
+      if(out){ trCache[key]=out; return out; }
+    }catch(e){ /* 尝试下一组代码 */ }
+  }}
+  return "";
+}
+
+/* ==================== 下拉框 ==================== */
+function fillLangSelect(sel){
+  sel.innerHTML = LANG_KEYS.map(k=>`<option value="${k}">${LANGS[k].flag} ${LANGS[k].name}</option>`).join("");
+}
+function initSelectors(){
+  fillLangSelect(document.getElementById("trSrc"));
+  fillLangSelect(document.getElementById("trTgt"));
+  document.getElementById("trTgt").value = "zh";
+  fillLangSelect(document.getElementById("addLang"));
+}
+
+/* ==================== 复习调度 ==================== */
+function dueCards(){
+  const now=Date.now();
+  return state.cards.filter(c=>(c.nextReview||0)<=now)
+    .sort((a,b)=>(a.nextReview||0)-(b.nextReview||0));
+}
+function grade(card, result){
+  card.lastReview=Date.now();
+  card.reps=(card.reps||0)+1;
+  if(result==="good") card.level=Math.min((card.level||0)+1,EB_INTERVALS.length-1);
+  else if(result==="mid") card.level=Math.max((card.level||1)-1,0);
+  else { card.level=0; card.lapses=(card.lapses||0)+1; }
+  card.nextReview=Date.now()+EB_INTERVALS[card.level]*1000;
+  card.history=card.history||[];
+  card.history.push({t:Date.now(),r:result==="good"});
+  if(card.history.length>200) card.history=card.history.slice(-200);
+  save();
+}
+
+/* ==================== 学习面板 ==================== */
+let studyQueue=[], studyIdx=0, revealed=false;
+function renderStudy(){
+  const box=document.getElementById("studyBox");
+  if(studyQueue.length===0){ studyQueue=dueCards(); studyIdx=0; }
+  if(studyIdx>=studyQueue.length){
+    box.innerHTML=`<div class="empty">🎉 本轮复习完成<br/><span class="muted">剩余待复习：${dueCards().length} 张</span><br/><br/>
+      <button class="btn" onclick="startRound()">开始新一轮</button></div>`;
+    return;
+  }
+  const c=studyQueue[studyIdx], lang=c.lang;
+  const transHtml=LANG_KEYS.map(k=>{
+    const v=(k===lang)?c.term:(c.translations[k]||"");
+    return `<div class="trans-cell">
+      <div class="k">${LANGS[k].flag} ${LANGS[k].name}</div>
+      <div class="v">${esc(v)||"—"}</div>
+      <div style="margin-top:6px">${speakBtn(v,k,"🔊 发音")}</div>
+    </div>`;
+  }).join("");
+  box.innerHTML=`
+    <div class="study-meta">第 ${studyIdx+1} / ${studyQueue.length} 张 · 当前间隔档位 L${c.level||0}</div>
+    <div class="study-term">${esc(c.term)}</div>
+    <div class="study-meta">${LANGS[lang].flag} ${LANGS[lang].name} &nbsp; ${speakBtn(c.term,lang,"🔊 朗读")}</div>
+    <div id="answer" style="display:${revealed?"block":"none"}">
+      <div class="trans-grid">${transHtml}</div>
+      <div class="grade-btns">
+        <button class="g-bad" onclick="answer('bad')">😵 忘了</button>
+        <button class="g-mid" onclick="answer('mid')">🤔 模糊</button>
+        <button class="g-good" onclick="answer('good')">😎 记住</button>
+      </div>
+    </div>
+    ${revealed?"":`<div class="row" style="justify-content:center;margin-top:18px">
+      <button class="btn" onclick="reveal()">显示释义</button></div>`}`;
+}
+function startRound(){ studyQueue=[]; studyIdx=0; revealed=false; renderStudy(); }
+function reveal(){ revealed=true; renderStudy(); }
+function answer(v){
+  const c=studyQueue[studyIdx]; if(!c) return;
+  grade(c,v);
+  studyIdx++; revealed=false; renderStudy();
+}
+
+/* ==================== 词库 ==================== */
+function renderLibrary(){
+  const el=document.getElementById("libList");
+  if(state.cards.length===0){
+    el.innerHTML=`<div class="empty">还没有卡片。<button class="btn sm" onclick="openAdd()">添加第一个</button></div>`;
+    return;
+  }
+  const rows=state.cards.slice().sort((a,b)=>(b.lastReview||0)-(a.lastReview||0)).map(c=>{
+    const due=(c.nextReview||0)<=Date.now();
+    const pill=(c.level||0)===0?`<span class="pill new">新词</span>`
+      :(due?`<span class="pill due">待复习</span>`:`<span class="pill ok">已掌握 L${c.level}</span>`);
+    const others=LANG_KEYS.filter(k=>k!==c.lang)
+      .map(k=>`${LANGS[k].flag} ${esc(c.translations[k]||"—")}`).join(" · ");
+    return `<tr>
+      <td><b>${esc(c.term)}</b><br/><span class="muted" style="font-size:12px">${LANGS[c.lang].flag} ${LANGS[c.lang].name}</span></td>
+      <td class="muted" style="font-size:13px">${others}</td>
+      <td>${pill}</td>
+      <td class="muted" style="font-size:12px">${relTime(c.nextReview)}</td>
+      <td>${speakBtn(c.term,c.lang,"🔊")}
+        <button class="btn ghost sm" onclick="delCard('${c.id}')">删</button></td>
+    </tr>`;
+  }).join("");
+  el.innerHTML=`<table><thead><tr><th>正面</th><th>其他语言释义</th><th>状态</th><th>下次复习</th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+function delCard(id){
+  if(!confirm("确认删除该卡片？")) return;
+  state.cards=state.cards.filter(c=>c.id!==id); save();
+  renderLibrary(); renderStats(); startRound();
+}
+
+/* ==================== 添加卡片 ==================== */
+function openAdd(){
+  document.getElementById("addTerm").value="";
+  document.getElementById("addPreview").innerHTML="";
+  document.getElementById("addLang").value="it";
+  document.getElementById("addModal").style.display="flex";
+  setTimeout(()=>document.getElementById("addTerm").focus(),50);
+}
+function closeAdd(){ document.getElementById("addModal").style.display="none"; }
+async function previewAdd(){
+  const term=document.getElementById("addTerm").value.trim();
+  const lang=document.getElementById("addLang").value;
+  const prev=document.getElementById("addPreview");
+  const stamp=++previewAdd._stamp;
+  if(!term){ prev.innerHTML=""; return; }
+  const others=LANG_KEYS.filter(k=>k!==lang);
+  let html=`<div class="trans-cell"><div class="k">${LANGS[lang].flag} ${LANGS[lang].name}（正面）</div>
+    <input class="v" value="${esc(term)}" readonly /></div>`;
+  others.forEach(k=>{ html+=`<div class="trans-cell" data-k="${k}"><div class="k">${LANGS[k].flag} ${LANGS[k].name}</div>
+    <input class="v" placeholder="翻译中…" /></div>`; });
+  prev.innerHTML=html;
+  // 并行翻译，异步回填（用户可随时手动改写）
+  others.forEach(async k=>{
+    const t=await translate(term,lang,k);
+    if(stamp!==previewAdd._stamp) return;
+    const cell=prev.querySelector(`[data-k="${k}"] input`);
+    if(cell && !cell.value) cell.value=t || "";
+  });
+}
+previewAdd._stamp=0;
+function saveAdd(){
+  const term=document.getElementById("addTerm").value.trim();
+  const lang=document.getElementById("addLang").value;
+  if(!term){ toast("请输入单词"); return; }
+  const translations={};
+  document.querySelectorAll("#addPreview .trans-cell").forEach(cell=>{
+    const k=cell.dataset.k||lang;
+    translations[k]=(cell.querySelector("input")||{}).value||"";
+  });
+  state.cards.push({
+    id:uid(),term,lang,translations,level:0,reps:0,lapses:0,
+    nextReview:Date.now(),lastReview:null,history:[]
+  });
+  save(); closeAdd(); toast("已添加："+term);
+  renderLibrary(); renderStats(); startRound(); switchTab("library");
+}
+
+/* ==================== 翻译面板 ==================== */
+async function doTranslate(){
+  const src=document.getElementById("trSrc").value, tgt=document.getElementById("trTgt").value;
+  const text=document.getElementById("trInput").value.trim();
+  if(!text){ toast("请输入文本"); return; }
+  const out=document.getElementById("trOut"); out.textContent="翻译中…";
+  const r=await translate(text,src,tgt);
+  out.textContent=r||"（翻译失败，请检查网络）";
+}
+function swapLang(){
+  const s=document.getElementById("trSrc"),t=document.getElementById("trTgt");
+  const tmp=s.value; s.value=t.value; t.value=tmp;
+  const o=document.getElementById("trOut").textContent;
+  if(o && o!=="—" && o!=="翻译中…"){ document.getElementById("trInput").value=o; document.getElementById("trOut").textContent="—"; }
+}
+
+/* ==================== 统计 ==================== */
+function renderStats(){
+  const total=state.cards.length, due=dueCards().length;
+  const learned=state.cards.filter(c=>(c.level||0)>0).length;
+  const reps=state.cards.reduce((s,c)=>s+(c.reps||0),0);
+  const remembered=state.cards.reduce((s,c)=>s+(c.history||[]).filter(h=>h.r).length,0);
+  const rate=reps?Math.round(remembered/reps*100):0;
+  document.getElementById("statBox").innerHTML=`
+    <div class="stat"><div class="n">${total}</div><div class="l">卡片总数</div></div>
+    <div class="stat"><div class="n" style="color:var(--bad)">${due}</div><div class="l">待复习</div></div>
+    <div class="stat"><div class="n" style="color:var(--good)">${learned}</div><div class="l">已掌握</div></div>
+    <div class="stat"><div class="n" style="color:var(--accent)">${rate}%</div><div class="l">平均留存率</div></div>`;
+  drawCurve();
+}
+function drawCurve(){
+  const cv=document.getElementById("curve"),ctx=cv.getContext("2d");
+  const W=cv.width,H=cv.height,pad=40;
+  const dark=document.documentElement.getAttribute("data-theme")!=="light";
+  ctx.clearRect(0,0,W,H);
+  const lineC=dark?"#6c8cff":"#3b5bdb", barC=dark?"#34d399":"#0ca678", txtC=dark?"#9aa3b2":"#5b6577";
+  ctx.strokeStyle=dark?"#2a2f3d":"#e3e8f0"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,10); ctx.lineTo(pad,H-pad); ctx.lineTo(W-10,H-pad); ctx.stroke();
+  ctx.fillStyle=txtC; ctx.font="12px sans-serif";
+  ctx.fillText("留存率",6,20); ctx.fillText("时间(天)",W-60,H-14);
+  const S=1.5,maxD=30;
+  ctx.strokeStyle=lineC; ctx.lineWidth=2; ctx.beginPath();
+  for(let i=0;i<=maxD;i++){
+    const x=pad+(W-2*pad)*(i/maxD), r=Math.exp(-i/S), y=(H-pad)-(H-2*pad)*r;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  const buckets=[1,2,3,5,8],labels=["1次","2次","3次","5次","8+次"];
+  const data=buckets.map(b=>{
+    const cs=state.cards.filter(c=>(c.reps||0)>=b);
+    const tot=cs.reduce((s,c)=>s+(c.history||[]).length,0);
+    const rem=cs.reduce((s,c)=>s+(c.history||[]).filter(h=>h.r).length,0);
+    return tot?rem/tot:null;
+  });
+  const bw=(W-2*pad)/data.length;
+  data.forEach((v,i)=>{
+    const x=pad+bw*i+bw*0.2, w=bw*0.6;
+    ctx.fillStyle=txtC; ctx.fillText(labels[i],x-2,H-pad+16);
+    if(v===null) return;
+    const y=(H-pad)-(H-2*pad)*v;
+    ctx.fillStyle=barC; ctx.globalAlpha=.85; ctx.fillRect(x,y,w,(H-pad)-y); ctx.globalAlpha=1;
+    ctx.fillStyle=txtC; ctx.fillText(Math.round(v*100)+"%",x,y-6);
+  });
+  ctx.fillStyle=lineC; ctx.fillText("— 理论遗忘曲线",pad+10,22);
+}
+
+/* ==================== 主题 / 标签 ==================== */
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute("data-theme");
+  const next=cur==="light"?"dark":"light";
+  document.documentElement.setAttribute("data-theme",next);
+  document.getElementById("themeLabel").textContent=next==="light"?"浅色":"深色";
+  drawCurve();
+}
+function switchTab(t){
+  document.querySelectorAll("nav button[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===t));
+  document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id==="panel-"+t));
+  if(t==="library") renderLibrary();
+  if(t==="stats") renderStats();
+  if(t==="study") renderStudy();
+}
+
+/* ==================== 种子数据 & 初始化 ==================== */
+function seed(){
+  if(state.cards.length>0) return;
+  const data=[
+    ["ciao","it",{en:"hello",zh:"你好",es:"hola",it:"ciao"}],
+    ["grazie","it",{en:"thank you",zh:"谢谢",es:"gracias",it:"grazie"}],
+    ["libro","it",{en:"book",zh:"书",es:"libro",it:"libro"}],
+    ["mangiare","it",{en:"to eat",zh:"吃",es:"comer",it:"mangiare"}],
+    ["acqua","it",{en:"water",zh:"水",es:"agua",it:"acqua"}],
+    ["amore","it",{en:"love",zh:"爱",es:"amor",it:"amore"}],
+    ["casa","it",{en:"house",zh:"房子",es:"casa",it:"casa"}],
+    ["sole","it",{en:"sun",zh:"太阳",es:"sol",it:"sole"}],
+    ["hola","es",{en:"hello",zh:"你好",es:"hola",it:"ciao"}],
+    ["gracias","es",{en:"thank you",zh:"谢谢",es:"gracias",it:"grazie"}],
+  ];
+  state.cards=data.map(([term,lang,tr])=>({
+    id:uid(),term,lang,translations:tr,level:0,reps:0,lapses:0,
+    nextReview:Date.now(),lastReview:null,history:[]
+  }));
+  save();
+}
+function init(){
+  load(); seed(); initSelectors();
+  if("speechSynthesis" in window){
+    refreshVoices();
+    window.speechSynthesis.onvoiceschanged=refreshVoices;
+    setTimeout(refreshVoices,600);
+  }else{ updateVoiceStatus(); }
+  document.getElementById("addTerm").addEventListener("input",()=>{
+    clearTimeout(window._pt); window._pt=setTimeout(previewAdd,450);
+  });
+  document.getElementById("addLang").addEventListener("change",previewAdd);
+  document.getElementById("trInput").addEventListener("keydown",e=>{
+    if((e.metaKey||e.ctrlKey)&&e.key==="Enter") doTranslate();
+  });
+  renderStudy(); renderLibrary(); renderStats();
+}
+document.addEventListener("DOMContentLoaded",init);
+</script>
+</body>
+</html>
